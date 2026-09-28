@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1f3a">
+
+<title>Calculadora CPM</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f4f6f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    color: #182233;
+}
+
+.container {
+    max-width: 520px;
+    margin: auto;
+    padding: 20px 16px 40px;
+}
+
+.header {
+    background: #0b1f3a;
+    color: white;
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 18px;
+}
+
+.header h1 {
+    margin: 0 0 6px;
+    font-size: 25px;
+}
+
+.header p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.field {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.input-container {
+    position: relative;
+}
+
+input {
+    width: 100%;
+    height: 58px;
+    border: 1.5px solid #d4d9e2;
+    border-radius: 12px;
+    padding: 0 16px;
+    font-size: 20px;
+    color: #182233;
+    background: white;
+    outline: none;
+}
+
+input:focus {
+    border-color: #315d96;
+    box-shadow: 0 0 0 3px rgba(49,93,150,0.12);
+}
+
+input.resultado {
+    background: #eef4fb;
+    border-color: #315d96;
+}
+
+.euro {
+    position: absolute;
+    right: 16px;
+    top: 17px;
+    font-size: 18px;
+    color: #687386;
+    pointer-events: none;
+}
+
+.info {
+    background: #f5f7fa;
+    color: #697386;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+button {
+    width: 100%;
+    height: 48px;
+    border: 0;
+    border-radius: 11px;
+    background: #e8ecf2;
+    color: #263449;
+    font-size: 15px;
+    font-weight: 600;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Calculadora CPM</h1>
+        <p>Introduce dos valores y calcula automáticamente el tercero.</p>
+    </div>
+
+    <div class="card">
+
+        <div class="field">
+            <label for="impresiones">Impresiones</label>
+            <input
+                id="impresiones"
+                type="text"
+                inputmode="decimal"
+                placeholder="Ej.: 500000"
+                autocomplete="off">
+        </div>
+
+        <div class="field">
+            <label for="cpm">CPM</label>
+
+            <div class="input-container">
+                <input
+                    id="cpm"
+                    type="text"
+                    inputmode="decimal"
+                    placeholder="Ej.: 4"
+                    autocomplete="off">
+
+                <span class="euro">€</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="presupuesto">Presupuesto</label>
+
+            <div class="input-container">
+                <input
+                    id="presupuesto"
+                    type="text"
+                    inputmode="decimal"
+                    placeholder="Ej.: 1000"
+                    autocomplete="off">
+
+                <span class="euro">€</span>
+            </div>
+        </div>
+
+        <div class="info">
+            Introduce cualquier dos de los tres valores. La calculadora obtendrá automáticamente el tercero.
+        </div>
+
+        <button onclick="limpiar()">Limpiar</button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const impresiones = document.getElementById("impresiones");
+const cpm = document.getElementById("cpm");
+const presupuesto = document.getElementById("presupuesto");
+
+let camposIntroducidos = [];
+
+
+function obtenerNumero(campo) {
+
+    let valor = campo.value
+        .replace(/\./g, "")
+        .replace(",", ".")
+        .trim();
+
+    if (valor === "") {
+        return null;
+    }
+
+    let numero = parseFloat(valor);
+
+    if (isNaN(numero) || numero <= 0) {
+        return null;
+    }
+
+    return numero;
+}
+
+
+function registrarCampo(campo) {
+
+    camposIntroducidos =
+        camposIntroducidos.filter(c => c !== campo);
+
+    camposIntroducidos.push(campo);
+
+    if (camposIntroducidos.length > 2) {
+        camposIntroducidos.shift();
+    }
+
+    calcular();
+}
+
+
+function calcular() {
+
+    if (camposIntroducidos.length < 2) {
+        return;
+    }
+
+    let campo1 = camposIntroducidos[0];
+    let campo2 = camposIntroducidos[1];
+
+    let valor1 = obtenerNumero(campo1);
+    let valor2 = obtenerNumero(campo2);
+
+    if (valor1 === null || valor2 === null) {
+        return;
+    }
+
+
+    /*
+        IMPRESIONES + CPM
+        = PRESUPUESTO
+    */
+
+    if (
+        (campo1 === impresiones && campo2 === cpm) ||
+        (campo1 === cpm && campo2 === impresiones)
+    ) {
+
+        let resultado =
+            (obtenerNumero(impresiones) / 1000)
+            * obtenerNumero(cpm);
+
+        presupuesto.value =
+            resultado.toLocaleString("es-ES", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+        presupuesto.classList.add("resultado");
+    }
+
+
+    /*
+        IMPRESIONES + PRESUPUESTO
+        = CPM
+    */
+
+    else if (
+        (campo1 === impresiones && campo2 === presupuesto) ||
+        (campo1 === presupuesto && campo2 === impresiones)
+    ) {
+
+        let resultado =
+            (obtenerNumero(presupuesto) /
+            obtenerNumero(impresiones)) * 1000;
+
+        cpm.value =
+            resultado.toLocaleString("es-ES", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+        cpm.classList.add("resultado");
+    }
+
+
+    /*
+        CPM + PRESUPUESTO
+        = IMPRESIONES
+    */
+
+    else if (
+        (campo1 === cpm && campo2 === presupuesto) ||
+        (campo1 === presupuesto && campo2 === cpm)
+    ) {
+
+        let resultado =
+            (obtenerNumero(presupuesto) /
+            obtenerNumero(cpm)) * 1000;
+
+        impresiones.value =
+            Math.round(resultado).toLocaleString("es-ES");
+
+        impresiones.classList.add("resultado");
+    }
+}
+
+
+function limpiar() {
+
+    impresiones.value = "";
+    cpm.value = "";
+    presupuesto.value = "";
+
+    impresiones.classList.remove("resultado");
+    cpm.classList.remove("resultado");
+    presupuesto.classList.remove("resultado");
+
+    camposIntroducidos = [];
+}
+
+
+impresiones.addEventListener("input", function() {
+    impresiones.classList.remove("resultado");
+    registrarCampo(impresiones);
+});
+
+cpm.addEventListener("input", function() {
+    cpm.classList.remove("resultado");
+    registrarCampo(cpm);
+});
+
+presupuesto.addEventListener("input", function() {
+    presupuesto.classList.remove("resultado");
+    registrarCampo(presupuesto);
+});
+
+</script>
+
+</body>
+</html>
